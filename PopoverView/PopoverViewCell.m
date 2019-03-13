@@ -3,9 +3,9 @@
 #import "PopoverViewCell.h"
 
 // extern
-float const PopoverViewCellHorizontalMargin = 15.f; ///< 水平边距
-float const PopoverViewCellVerticalMargin = 3.f; ///< 垂直边距
-float const PopoverViewCellTitleLeftEdge = 8.f; ///< 标题左边边距
+CGFloat const PopoverViewCellHorizontalMargin = 15.f; ///< 水平边距
+CGFloat const PopoverViewCellVerticalMargin   = 3.f; ///< 垂直边距
+CGFloat const PopoverViewCellTitleLeftEdge    = 8.f; ///< 标题左边边距
 
 @interface PopoverViewCell ()
 
@@ -15,6 +15,7 @@ float const PopoverViewCellTitleLeftEdge = 8.f; ///< 标题左边边距
 @end
 
 @implementation PopoverViewCell
+@synthesize titleFont = _titleFont, textColor = _textColor, bottomLineColor = _bottomLineColor;
 
 #pragma mark - Life Cycle
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
@@ -31,7 +32,7 @@ float const PopoverViewCellTitleLeftEdge = 8.f; ///< 标题左边边距
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     [super setHighlighted:highlighted animated:animated];
     if (highlighted) {
-        self.backgroundColor = _style == PopoverViewStyleDefault ? [UIColor colorWithRed:0.90 green:0.90 blue:0.90 alpha:1.00] : [UIColor colorWithRed:0.23 green:0.23 blue:0.23 alpha:1.00];
+        self.backgroundColor = (_style == PopoverViewStyleDefault) ? [UIColor colorWithRed:236.0f/255.0f green:236.0f/255.0f blue:236.0f/255.0f alpha:1.0f] : [UIColor colorWithRed:0.23f green:0.23f blue:0.23f alpha:1.0f];
     } else {
         [UIView animateWithDuration:0.3f animations:^{
             self.backgroundColor = [UIColor clearColor];
@@ -42,49 +43,63 @@ float const PopoverViewCellTitleLeftEdge = 8.f; ///< 标题左边边距
 #pragma mark - Setter
 - (void)setStyle:(PopoverViewStyle)style {
     _style = style;
-    _bottomLine.backgroundColor = [self.class bottomLineColorForStyle:style];
-    if (_style == PopoverViewStyleDefault) {
-        [_button setTitleColor:UIColor.blackColor forState:UIControlStateNormal];
-    } else {
-        [_button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-    }
+    
+    _bottomLine.backgroundColor = self.bottomLineColor;
+    [_button setTitleColor:self.textColor forState:UIControlStateNormal];
 }
 
 #pragma mark - Private
 // 初始化
 - (void)initialize {
     // UI
-    _button = [UIButton buttonWithType:UIButtonTypeCustom];
-    _button.userInteractionEnabled = NO; // has no use for UserInteraction.
-    _button.translatesAutoresizingMaskIntoConstraints = NO;
-    _button.titleLabel.font = [self.class titleFont];
-    _button.backgroundColor = self.contentView.backgroundColor;
-    _button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    [_button setTitleColor:UIColor.blackColor forState:UIControlStateNormal];
-    [self.contentView addSubview:_button];
+    [self.contentView addSubview:self.button];
+    
     // Constraint
     [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[_button]-margin-|" options:kNilOptions metrics:@{@"margin" : @(PopoverViewCellHorizontalMargin)} views:NSDictionaryOfVariableBindings(_button)]];
     [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-margin-[_button]-margin-|" options:kNilOptions metrics:@{@"margin" : @(PopoverViewCellVerticalMargin)} views:NSDictionaryOfVariableBindings(_button)]];
+    
     // 底部线条
     UIView *bottomLine = [[UIView alloc] init];
-    bottomLine.backgroundColor = [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.00];
+    bottomLine.backgroundColor = self.bottomLineColor;
     bottomLine.translatesAutoresizingMaskIntoConstraints = NO;
     [self.contentView addSubview:bottomLine];
     _bottomLine = bottomLine;
+    
     // Constraint
     [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[bottomLine]|" options:kNilOptions metrics:nil views:NSDictionaryOfVariableBindings(bottomLine)]];
     [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[bottomLine(lineHeight)]|" options:kNilOptions metrics:@{@"lineHeight" : @(1/[UIScreen mainScreen].scale)} views:NSDictionaryOfVariableBindings(bottomLine)]];
 }
 
-#pragma mark - Public
-/*! @brief 标题字体 */
-+ (UIFont *)titleFont {
-    return [UIFont systemFontOfSize:15.f];
+- (UIButton *)button {
+    if (!_button) {
+        _button = [UIButton buttonWithType:UIButtonTypeCustom];
+        _button.userInteractionEnabled = NO; // has no use for UserInteraction.
+        _button.translatesAutoresizingMaskIntoConstraints = NO;
+        _button.titleLabel.font = self.titleFont;
+        _button.backgroundColor = self.contentView.backgroundColor;
+        _button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        [_button setTitleColor:self.textColor forState:UIControlStateNormal];
+    }
+    return _button;
 }
 
-/*! @brief 底部线条颜色 */
-+ (UIColor *)bottomLineColorForStyle:(PopoverViewStyle)style {
-    return style == PopoverViewStyleDefault ? [UIColor colorWithRed:0.75 green:0.75 blue:0.75 alpha:1.00] : [UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:1.00];
+#pragma mark - Public
+- (void)setTitleFont:(UIFont *)titleFont {
+    _titleFont = titleFont;
+    
+    self.button.titleLabel.font = titleFont;
+}
+
+- (void)setTextColor:(UIColor *)textColor {
+    _textColor = textColor;
+    
+    [_button setTitleColor:textColor forState:UIControlStateNormal];
+}
+
+- (void)setBottomLineColor:(UIColor *)bottomLineColor {
+    _bottomLineColor = bottomLineColor;
+    
+    _bottomLine.backgroundColor = bottomLineColor;
 }
 
 - (void)setAction:(PopoverAction *)action {

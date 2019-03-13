@@ -72,14 +72,12 @@ float PopoverViewDegreesToRadians(float angle)
 {
     _style = style;
     
-    _tableView.separatorColor = [PopoverViewCell bottomLineColorForStyle:_style];
+    _tableView.separatorColor = self.bottomLineColor;
     
     if (_style == PopoverViewStyleDefault) {
-        
         self.backgroundColor = [UIColor whiteColor];
     }
     else {
-        
         self.backgroundColor = [UIColor colorWithRed:0.29 green:0.29 blue:0.29 alpha:1.00];
     }
 }
@@ -115,7 +113,7 @@ float PopoverViewDegreesToRadians(float angle)
     _tableView.dataSource = self;
     _tableView.scrollEnabled = NO;
     _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    _tableView.separatorColor = [PopoverViewCell bottomLineColorForStyle:_style];
+    _tableView.separatorColor = self.bottomLineColor;
     _tableView.backgroundColor = [UIColor clearColor];
     _tableView.estimatedRowHeight = 0.0;
     _tableView.showsVerticalScrollIndicator = NO;
@@ -293,7 +291,7 @@ float PopoverViewDegreesToRadians(float angle)
     self.transform = CGAffineTransformMakeScale(0.01f, 0.01f);
     [UIView animateWithDuration:0.25f animations:^{
         self.transform = CGAffineTransformIdentity;
-        _shadeView.alpha = 1.f;
+        self.shadeView.alpha = 1.f;
     }];
 }
 
@@ -302,7 +300,7 @@ float PopoverViewDegreesToRadians(float angle)
 {
     CGFloat maxWidth = 0.f, titleLeftEdge = 0.f, imageWidth = 0.f, imageMaxHeight = kPopoverViewCellHeight - PopoverViewCellVerticalMargin*2;
     CGSize imageSize = CGSizeZero;
-    UIFont *titleFont = [PopoverViewCell titleFont];
+    UIFont *titleFont = [self titleFont];
     
     for (PopoverAction *action in _actions) {
        
@@ -355,21 +353,43 @@ float PopoverViewDegreesToRadians(float angle)
 {
     [UIView animateWithDuration:0.25f animations:^{
         self.alpha = 0.f;
-        _shadeView.alpha = 0.f;
+        self.shadeView.alpha = 0.f;
         self.transform = CGAffineTransformMakeScale(0.01f, 0.01f);
     } completion:^(BOOL finished) {
-        [_shadeView removeFromSuperview];
+        [self.shadeView removeFromSuperview];
         [self removeFromSuperview];
     }];
 }
 
 #pragma mark - Public
+- (UIFont *)titleFont {
+    return _titleFont ?: [UIFont systemFontOfSize:14.f];
+}
+
+- (UIColor *)textColor {
+    if (_textColor) {
+        return _textColor;
+    }
+    return (self.style == PopoverViewStyleDefault) ? UIColor.blackColor : UIColor.whiteColor;
+}
+
+- (UIColor *)bottomLineColor {
+    if (_bottomLineColor) {
+        return _bottomLineColor;
+    }
+    return (self.style == PopoverViewStyleDefault) ? [UIColor colorWithRed:242.0f/255.0f green:242.0f/255.0f blue:242.0f/255.0f alpha:1.0f] : [UIColor colorWithRed:0.4f green:0.4f blue:0.4f alpha:1.0f];
+}
+
 + (instancetype)popoverView
 {
     return [[self alloc] init];
 }
 
-- (void)showToView:(UIView *)pointView withActions:(NSArray<PopoverAction *> *)actions
+- (void)showToView:(UIView *)pointView actions:(NSArray<PopoverAction *> *)actions {
+    [self showToView:pointView actions:actions space:0.0f];
+}
+
+- (void)showToView:(UIView *)pointView actions:(NSArray<PopoverAction *> *)actions space:(CGFloat)space
 {
     // 判断 pointView 是偏上还是偏下
     CGRect pointViewRect = [pointView.superview convertRect:pointView.frame toView:_keyWindow];
@@ -379,11 +399,11 @@ float PopoverViewDegreesToRadians(float angle)
     CGPoint toPoint = CGPointMake(CGRectGetMidX(pointViewRect), 0);
     // 弹窗在 pointView 顶部
     if (pointViewUpLength > pointViewDownLength) {
-        toPoint.y = pointViewUpLength - 5;
+        toPoint.y = pointViewUpLength - space;
     }
     // 弹窗在 pointView 底部
     else {
-        toPoint.y = CGRectGetMaxY(pointViewRect) + 5;
+        toPoint.y = CGRectGetMaxY(pointViewRect) + space;
     }
     
     // 箭头指向方向
@@ -398,7 +418,7 @@ float PopoverViewDegreesToRadians(float angle)
     [self showToPoint:toPoint];
 }
 
-- (void)showToPoint:(CGPoint)toPoint withActions:(NSArray<PopoverAction *> *)actions
+- (void)showToPoint:(CGPoint)toPoint actions:(NSArray<PopoverAction *> *)actions
 {
     if (!actions) {
         _actions = @[];
@@ -426,6 +446,9 @@ float PopoverViewDegreesToRadians(float angle)
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     PopoverViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kPopoverCellReuseId];
+    cell.titleFont = self.titleFont;
+    cell.textColor = self.textColor;
+    cell.bottomLineColor = self.bottomLineColor;
     cell.style = _style;
     [cell setAction:_actions[indexPath.row]];
     [cell showBottomLine: indexPath.row < _actions.count - 1];
@@ -437,12 +460,12 @@ float PopoverViewDegreesToRadians(float angle)
 {
     [UIView animateWithDuration:0.25f animations:^{
         self.alpha = 0.f;
-        _shadeView.alpha = 0.f;
+        self.shadeView.alpha = 0.f;
     } completion:^(BOOL finished) {
-        PopoverAction *action = _actions[indexPath.row];
+        PopoverAction *action = self.actions[indexPath.row];
         action.handler ? action.handler(action) : NULL;
-        _actions = nil;
-        [_shadeView removeFromSuperview];
+        self.actions = nil;
+        [self.shadeView removeFromSuperview];
         [self removeFromSuperview];
     }];
 }

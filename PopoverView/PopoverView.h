@@ -32,15 +32,27 @@ typedef NS_ENUM(NSUInteger, PopoverViewArrowStyle) {
  */
 @property (nonatomic, assign) PopoverViewArrowStyle arrowStyle;
 
+/*! @brief 标题字体 */
+@property (nonatomic, strong) UIFont *titleFont;
+
+/*! @brief 标题颜色 */
+@property (nonatomic, strong) UIColor *textColor;
+
+/*! @brief 底部线条颜色 */
+@property (nonatomic, strong) UIColor *bottomLineColor;
+
 + (instancetype)popoverView;
+
+- (void)showToView:(UIView *)pointView actions:(NSArray<PopoverAction *> *)actions;
 
 /**
  指向指定的View来显示弹窗
 
  @param pointView 箭头指向的View
  @param actions 动作对象集合<PopoverAction>
+ @param space 间距
  */
-- (void)showToView:(UIView *)pointView withActions:(NSArray<PopoverAction *> *)actions;
+- (void)showToView:(UIView *)pointView actions:(NSArray<PopoverAction *> *)actions space:(CGFloat)space;
 
 /**
  指向指定的点来显示弹窗
@@ -48,6 +60,6 @@ typedef NS_ENUM(NSUInteger, PopoverViewArrowStyle) {
  @param toPoint 箭头指向的点(这个点的坐标需按照keyWindow的坐标为参照)
  @param actions 动作对象集合<PopoverAction>
  */
-- (void)showToPoint:(CGPoint)toPoint withActions:(NSArray<PopoverAction *> *)actions;
+- (void)showToPoint:(CGPoint)toPoint actions:(NSArray<PopoverAction *> *)actions;
 
 @end
